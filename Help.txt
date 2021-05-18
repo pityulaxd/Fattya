@@ -1,0 +1,56 @@
+Hi
+I included this text to get a grip on the game
+I'ts nearly done just a few fixes and writing
+the endgame is left after that i'ts just adding more content
+and fixing popping up bugs but i'ts half playable
+Hit me up with any suggestions and bug reports
+
+Rules:
+First you get 6 cards to your hand which you can see
+And 3 cards which you can't
+Choose 3 from the 6 visible and the choosen ones 
+will be your endgame cards with the 3 hidden, you can't 
+play these till the deck empties
+Remaining 3 cards are your hand and you play from these
+First player plays a card and the game starts(will be updated to real life version later)
+The next player has to play a bigger card
+This continues till the deck runs out
+If someone can't play a card, the board has to be picked up by that player
+and the next player plays to an empty board
+This won't make it interesting but there're special type of magic and anti cards
+
+Magic cards(and powers):
+These can be put on any card except the Anti card(9)
+
+2   -- Reset, Makes the next player play to a 2 which is the lowest numbered card essentialy reseting the board 
+8   -- Glass card, next player has to play on the card below the 8 (stackable)
+10  -- Burn, deletes the board and the player has to play another card to an empty board
+Ace -- Ask, player has to ask another person to play a magic card and the turn skips to the asked player
+
+Anti card:
+9   -- Limit, can be played only if valid, so can't be played on a magic card, can't be played 
+       on any card higher than 9 and cant be played on the 9 since 9 limits the cards that can be put
+       on it from 3 to 7 
+
+Stacking:
+Player can stack any card in one turn but only if they have a same type of card
+even if they drawn it in the turn they played a card(program handles this automaticaly
+you just have to agree on playing the card)
+Example: Play 5 of Clubs
+         Draw 5 of Hearts
+         Game asks for permission to auto stack
+         If yes game put's card to the board and draws another one(if neccesary)
+         After this board looks like : 5 C 5 H 
+         And this repeats if you draw another 5(again with asked permission)
+
+Burning:
+If the players stack 4 of the same card on top of the board it gets deleted(burned)
+and the player who puts the last card plays on an empty board(because he/she burned the board)
+
+
+Setting up the game:
+Start the fattyaWeb to make a handling server(later this will be a dedicated thing, port 6070)
+Start the fattyaserver to make a table on the handle server which players can join(port is 60870)
+Have friends
+Start the client set a temporal account and sit to the table("join" command), than type "start"
+and wait for every player to do the same and than the game will start
