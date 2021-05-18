@@ -1,17 +1,17 @@
 package main
 
 import (
-	spirit "Spirit"
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fattya/core"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
 )
@@ -19,16 +19,15 @@ import (
 var (
 	reader  = bufio.NewReader(os.Stdin)
 	port    int
-	log     = logrus.CreateLogger()
 	reqS    = http.Client{}
-	players = map[string]*spirit.Player{}
-	lobby   = map[string]*spirit.Table{}
+	players = map[string]*core.Player{}
+	lobby   = map[string]*core.Table{}
 	msg     string
 )
 
 //Game
 func startGame(w http.ResponseWriter, r *http.Request) {
-	var p spirit.Player
+	var p core.Player
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &p)
 	if err != nil {
@@ -60,7 +59,7 @@ func startGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func selectCards(w http.ResponseWriter, r *http.Request) {
-	var p spirit.Player
+	var p core.Player
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &p)
 	if err != nil {
@@ -86,7 +85,7 @@ func selectCards(w http.ResponseWriter, r *http.Request) {
 }
 
 func wrongcard(w http.ResponseWriter, r *http.Request) {
-	var p spirit.Player
+	var p core.Player
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &p)
 	if err != nil {
@@ -106,7 +105,7 @@ func wrongcard(w http.ResponseWriter, r *http.Request) {
 }
 
 func yeet(w http.ResponseWriter, r *http.Request) {
-	var p spirit.Player
+	var p core.Player
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &p)
 	if err != nil {
@@ -126,7 +125,7 @@ func yeet(w http.ResponseWriter, r *http.Request) {
 }
 
 func play(w http.ResponseWriter, r *http.Request) {
-	var p spirit.Player
+	var p core.Player
 	var c []int
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &p)
@@ -156,7 +155,7 @@ func play(w http.ResponseWriter, r *http.Request) {
 }
 func winner(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	var stat spirit.Status
+	var stat core.Status
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &stat)
 	if err != nil {
@@ -188,7 +187,7 @@ func winner(w http.ResponseWriter, r *http.Request) {
 }
 
 func pickUp(w http.ResponseWriter, r *http.Request) {
-	var p spirit.Player
+	var p core.Player
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &p)
 	if err != nil {
@@ -217,7 +216,7 @@ func pickUp(w http.ResponseWriter, r *http.Request) {
 
 func statusP(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	var stat spirit.Status
+	var stat core.Status
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &stat)
 	if err != nil {
@@ -250,7 +249,7 @@ func statusP(w http.ResponseWriter, r *http.Request) {
 
 //Lobby
 func login(w http.ResponseWriter, r *http.Request) {
-	var p spirit.Player
+	var p core.Player
 
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &p)
@@ -275,7 +274,7 @@ func lobbyTables(w http.ResponseWriter, r *http.Request) {
 }
 
 func setupTable(w http.ResponseWriter, r *http.Request) {
-	var body spirit.Table
+	var body core.Table
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &body)
 	if err != nil {
@@ -289,7 +288,7 @@ func setupTable(w http.ResponseWriter, r *http.Request) {
 
 func joinTable(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	var body spirit.Table
+	var body core.Table
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &body)
 	if err != nil {
@@ -345,7 +344,7 @@ func main() {
 		log.Error(err)
 	}
 
-	log.SetLevel(logger.DEBUG)
+	log.SetLevel(log.DebugLevel)
 	//Create router
 	router := mux.NewRouter()
 

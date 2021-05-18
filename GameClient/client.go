@@ -1,20 +1,19 @@
 package main
 
 import (
-	spirit "Spirit"
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fattya/core"
+	"fmt"
 	"io/ioutil"
 	"net"
-
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/zenazn/goji/graceful"
 )
@@ -22,17 +21,16 @@ import (
 var (
 	router    = mux.NewRouter()
 	port      = 8080
-	log       = logrus.CreateLogger()
-	player    spirit.Player
+	player    core.Player
 	server    = "http://80.98.39.90:6070"
 	client    = http.Client{}
 	reader    = bufio.NewReader(os.Stdin)
-	table     spirit.Table
+	table     core.Table
 	err       error
-	playTable spirit.Table
+	playTable core.Table
 	msg       string
-	lobby     = map[string]*spirit.Table{}
-	hand      []spirit.Card
+	lobby     = map[string]*core.Table{}
+	hand      []core.Card
 )
 
 //Account
@@ -171,7 +169,7 @@ func play(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func statusP(w http.ResponseWriter, r *http.Request) {
-	var stat spirit.Status
+	var stat core.Status
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &stat)
 	if err != nil {
@@ -251,7 +249,7 @@ func jointable() {
 
 func winner(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	var hidden []spirit.Card
+	var hidden []core.Card
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &hidden)
 	if err != nil {

@@ -1,10 +1,10 @@
 package main
 
 import (
-	spirit "Spirit"
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fattya/core"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -24,22 +24,21 @@ var (
 	port   = 6071
 	//DrawDeck from this you draw
 	reader      = bufio.NewReader(os.Stdin)
-	myTable     spirit.Table
-	DrawDeck    []spirit.Card
-	log         = logrus.CreateLogger()
-	stack       []spirit.Card
-	pHands      = make(map[string][]spirit.Card)
-	endCards    = make(map[string][]spirit.Card)
-	hiddenCards = make(map[string][]spirit.Card)
+	myTable     core.Table
+	DrawDeck    []core.Card
+	stack       []core.Card
+	pHands      = make(map[string][]core.Card)
+	endCards    = make(map[string][]core.Card)
+	hiddenCards = make(map[string][]core.Card)
 	i           = 1
-	comp        spirit.Card
+	comp        core.Card
 	turn        = 0
 	gs          = 1
 	//Asked player number need to be in request
 	askP    = 0
 	ready   = 0
 	client  http.Client
-	empty   spirit.Card
+	empty   core.Card
 	lastTen = false
 )
 
@@ -48,7 +47,7 @@ var (
 //
 //Game logic
 
-func autoBurn(c spirit.Card) bool {
+func autoBurn(c core.Card) bool {
 	if c.Type == comp.Type {
 		i++
 	} else {
@@ -63,7 +62,7 @@ func autoBurn(c spirit.Card) bool {
 }
 
 //Function to check 9 on stack
-func limit(c spirit.Card) bool {
+func limit(c core.Card) bool {
 	if c.Type >= 3 && c.Type <= 7 {
 		stack = append(stack, c)
 		return true
@@ -73,7 +72,7 @@ func limit(c spirit.Card) bool {
 }
 
 //Function to check 8 on stack
-func glass(c spirit.Card) bool {
+func glass(c core.Card) bool {
 	if c.Type == 8 {
 		stack = append(stack, c)
 		gs++
@@ -92,7 +91,7 @@ func glass(c spirit.Card) bool {
 }
 
 //Function to check 1 on stack
-func isMagicCard(c spirit.Card) bool {
+func isMagicCard(c core.Card) bool {
 	switch {
 	case c.Type == 2:
 		stack = append(stack, c)
@@ -114,7 +113,7 @@ func isMagicCard(c spirit.Card) bool {
 	}
 }
 
-func magicCard(c spirit.Card) bool {
+func magicCard(c core.Card) bool {
 	switch {
 	case c.Type == 2:
 		return true
@@ -141,7 +140,7 @@ func burn() bool {
 }
 
 //Regular play logic check
-func valid(c spirit.Card) bool {
+func valid(c core.Card) bool {
 	if magicCard(c) {
 		return isMagicCard(c)
 	} else {
@@ -152,10 +151,9 @@ func valid(c spirit.Card) bool {
 			return false
 		}
 	}
-	panic("Validation error")
 }
 
-func validate(c spirit.Card) bool {
+func validate(c core.Card) bool {
 	switch {
 	case stack[len(stack)-1].Type == 9:
 		return limit(c)
@@ -172,7 +170,7 @@ func validate(c spirit.Card) bool {
 	}
 }
 
-func invalidCard(c spirit.Card, w http.ResponseWriter) {
+func invalidCard(c core.Card, w http.ResponseWriter) {
 	body, err := json.Marshal(c)
 
 	if err != nil {
@@ -182,7 +180,7 @@ func invalidCard(c spirit.Card, w http.ResponseWriter) {
 }
 
 //Game
-func pickUp(p spirit.Player) {
+func pickUp(p core.Player) {
 	all := len(stack)
 	if all > 0 {
 		for i := 0; i < all; i++ {
@@ -192,7 +190,7 @@ func pickUp(p spirit.Player) {
 	}
 }
 
-func setupTable(t spirit.Table) {
+func setupTable(t core.Table) {
 	body, err := json.Marshal(&t)
 	if err != nil {
 		log.Error(err)
@@ -212,7 +210,7 @@ func setupTable(t spirit.Table) {
 }
 
 func joinTable(w http.ResponseWriter, r *http.Request) {
-	var p spirit.Player
+	var p core.Player
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &p)
 	if err != nil {
@@ -230,17 +228,17 @@ func joinTable(w http.ResponseWriter, r *http.Request) {
 }
 
 func start(w http.ResponseWriter, r *http.Request) {
-	var p spirit.Player
+	var p core.Player
 	temp, err := ioutil.ReadAll(r.Body)
 	json.Unmarshal(temp, &p)
 	if err != nil {
 		log.Error(err)
 	}
 	for k := 0; k < 3; k++ {
-		hiddenCards[p.Password] = append(hiddenCards[p.Password], spirit.Draw(DrawDeck))
+		hiddenCards[p.Password] = append(hiddenCards[p.Password], core.Draw(DrawDeck))
 	}
 	for l := 0; l < 6; l++ {
-		pHands[p.Password] = append(pHands[p.Password], spirit.Draw(DrawDeck))
+		pHands[p.Password] = append(pHands[p.Password], core.Draw(DrawDeck))
 	}
 	selectCards(p)
 
@@ -264,12 +262,12 @@ func start(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func remove(s []spirit.Card, i int) []spirit.Card {
+func remove(s []core.Card, i int) []core.Card {
 	s[i] = s[len(s)-1]
 	return s[:len(s)-1]
 }
 
-func selectCards(p spirit.Player) {
+func selectCards(p core.Player) {
 	statusP(p)
 	body, err := json.Marshal(&p)
 	if err != nil {
@@ -298,7 +296,7 @@ func selectCards(p spirit.Player) {
 	ready++
 }
 
-func wrongcard(p spirit.Player) {
+func wrongcard(p core.Player) {
 	body, err := json.Marshal(&p)
 	if err != nil {
 		log.Error(err)
@@ -316,7 +314,7 @@ func wrongcard(p spirit.Player) {
 	play(p)
 }
 
-func yeet(p spirit.Player) {
+func yeet(p core.Player) {
 	for j := 0; j < len(pHands[p.Password]); j++ {
 		if len(stack) == 0 && lastTen {
 			var msg string
@@ -342,7 +340,7 @@ func yeet(p spirit.Player) {
 					if len(pHands[p.Password]) < 3 {
 						i := 3 - len(pHands[p.Password])
 						for j := 0; j < i; j++ {
-							card := spirit.Draw(DrawDeck)
+							card := core.Draw(DrawDeck)
 							fmt.Println(card)
 							pHands[p.Password] = append(pHands[p.Password], card)
 						}
@@ -374,7 +372,7 @@ func yeet(p spirit.Player) {
 					if len(pHands[p.Password]) < 3 {
 						i := 3 - len(pHands[p.Password])
 						for j := 0; j < i; j++ {
-							card := spirit.Draw(DrawDeck)
+							card := core.Draw(DrawDeck)
 							fmt.Println(card)
 							pHands[p.Password] = append(pHands[p.Password], card)
 						}
@@ -385,7 +383,7 @@ func yeet(p spirit.Player) {
 		}
 	}
 }
-func play(p spirit.Player) {
+func play(p core.Player) {
 	var c []int
 	body, err := json.Marshal(&p)
 	if err != nil {
@@ -437,7 +435,7 @@ func play(p spirit.Player) {
 		if len(pHands[p.Password]) < 3 {
 			i := 3 - len(pHands[p.Password])
 			for j := 0; j < i; j++ {
-				card := spirit.Draw(DrawDeck)
+				card := core.Draw(DrawDeck)
 				fmt.Println(card)
 				pHands[p.Password] = append(pHands[p.Password], card)
 			}
@@ -473,7 +471,7 @@ func play(p spirit.Player) {
 	askP = -1
 }
 
-func endGame(p spirit.Player) {
+func endGame(p core.Player) {
 	var c []int
 	body, err := json.Marshal(&p)
 	if err != nil {
@@ -589,7 +587,7 @@ func endGame(p spirit.Player) {
 	}
 }
 
-func winner(p spirit.Player) {
+func winner(p core.Player) {
 	for _, element := range myTable.Players {
 		temp := hiddenCards[element.Password]
 		body, err := json.Marshal(&temp)
@@ -609,8 +607,8 @@ func winner(p spirit.Player) {
 	}
 }
 
-func statusP(p spirit.Player) {
-	var stat spirit.Status
+func statusP(p core.Player) {
+	var stat core.Status
 	stat.EndCards = endCards[p.Password]
 	stat.StackCards = stack
 	stat.HandCards = pHands[p.Password]
@@ -653,7 +651,7 @@ func init() {
 
 func main() {
 	//Set up logger
-	log.SetLevel(logger.DEBUG)
+	log.SetLevel(log.DebugLevel)
 	myTable.Address = "http://" + myip() + ":" + strconv.Itoa(port)
 	//Create router and endpoints
 	/*
@@ -677,8 +675,8 @@ func main() {
 	*/
 	router := mux.NewRouter()
 
-	DrawDeck = spirit.New(2)
-	spirit.Shuffle(DrawDeck)
+	DrawDeck = core.New(2)
+	core.Shuffle(DrawDeck)
 
 	fmt.Println("Tablename:")
 	temp, err := reader.ReadString('\n')
